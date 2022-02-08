@@ -24,9 +24,15 @@ end
 func proposal_created(proposal_id : felt, proposer_address : felt, block_number : felt, block_timestamp : felt):
 end
 
-#event emitted after ech vote is received 
+struct EIP721Sig:
+    member part1: felt
+    member part2: felt
+    member part3: felt
+end
+
+#event emitted after each vote is received 
 @event 
-func vote_received(proposal_id : felt, voter_address : felt, choice : felt, block_number : felt, block_timestamp : felt):
+func vote_received(proposal_id : felt, voter_address : felt, choice : felt, block_number : felt, block_timestamp : felt, signature : EIP721Sig):
 end 
 
 #Submit proposal to L2
@@ -66,7 +72,9 @@ func vote{
         proposal_id : felt,
         address : felt,
         choice : felt,
-        signature : felt
+        signature_part1 : felt,
+        signature_part2 : felt,
+        signature_part3: felt,
     ):
     
     #ensures choice is 1 or 2 or 3 only
@@ -77,7 +85,11 @@ func vote{
     choices_store.write(proposal_id, choice, num_choice+1) 
     let (block_number) = get_block_number()
     let (block_timestamp) = get_block_timestamp()
-    vote_received.emit(proposal_id, address, choice, block_number, block_timestamp) 
+
+    # Might want to sanitize `part3` and make sure it's not more than 6 bytes long (depending on whether we trust the input or not).
+    let signature = EIP721Sig(part1=signature_part1, part2=signature_part2, part3=signature_part3)
+
+    vote_received.emit(proposal_id, address, choice, block_number, block_timestamp, signature) 
 
     return ()
 end 
