@@ -35,6 +35,21 @@ jobs:
 
       - name: Compile Contracts
         run: yarn compile
-    
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          apt install -y libgmp3-dev
+          python -m pip install --upgrade pip
+          pip install starknet-devnet
+      
       - name: Run unit tests
-        run: yarn test 
+        run: |
+          starknet-devnet -p 8000 &
+          sleep 10 &&
+          curl http://localhost:8000 &&
+          yarn test 
