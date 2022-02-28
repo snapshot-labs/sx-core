@@ -4,7 +4,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_nn_le, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_in_range
 from contracts.starknet.keccak.pow import pow
-from contracts.starknet.keccak.types import IntsSequence
+from contracts.starknet.keccak.int_sequence import IntsSequence
 
 # func swap_endianness_many_words{ range_check_ptr, bitwise_ptr : BitwiseBuiltin* }(input: IntsSequence) -> (output: IntsSequence):
 #     alloc_locals
