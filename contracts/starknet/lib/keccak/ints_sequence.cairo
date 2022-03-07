@@ -1,37 +1,9 @@
 from starkware.cairo.common.alloc import alloc
 
-struct Keccak256Hash:
-    member word_1 : felt
-    member word_2 : felt
-    member word_3 : felt
-    member word_4 : felt
-end
-
-struct StorageSlot:
-    member word_1 : felt
-    member word_2 : felt
-    member word_3 : felt
-    member word_4 : felt
-end
-
-# first 2 words are full
-# the last word contains the remaining 4 bytes
-struct Address:
-    member word_1 : felt
-    member word_2 : felt
-    member word_3 : felt
-end
-
 struct IntsSequence:
     member element : felt*
     member element_size_words: felt
     member element_size_bytes: felt
-end
-
-struct RLPItem:
-    member firstByte : felt
-    member dataPosition : felt
-    member length : felt
 end
 
 ### IntsSequence utilities
