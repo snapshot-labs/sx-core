@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat';
 import { SplitUint256, Choice } from './types';
 import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 import { computeHashOnElements } from 'starknet/dist/utils/hash';
 import { toBN } from 'starknet/dist/utils/number';
 import { EIP712_TYPES } from './safeUtils';
@@ -27,24 +28,21 @@ export function bytesToHex(bytes: number[] | Uint8Array): string {
 }
 
 /**
- * Receives a hex address, converts it to bigint, converts it back to hex.
- * This is done to strip leading zeros.
+ * Strip leading zeros from a hex string
  * @param address a hex string representation of an address
- * @returns an adapted hex string representation of the address
+ * @returns An adapted hex string representation of the address
  */
-export function adaptAddress(address: string) {
+export function stripAddress(address: string): string {
   return '0x' + BigInt(address).toString(16);
 }
 
 /**
- * Expects address equality after adapting them.
- * @param actual
- * @param expected
- */
-export function expectAddressEquality(actual: string, expected: string) {
-  expect(adaptAddress(actual)).to.equal(adaptAddress(expected));
-}
-
+ * Convert 4 64 bit words to a 256 bit word
+ * @param word1 A 64 bit word
+ * @param word2 A 64 bit word
+ * @param word3 A 64 bit word
+ * @param word4 A 64 bit word
+ * @returns A 256 bit word
 export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: bigint): bigint {
   const s3 = BigInt(2 ** 64);
   const s2 = BigInt(2 ** 128);
@@ -52,9 +50,15 @@ export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: 
   return word4 + word3 * s3 + word2 * s2 + word1 * s1;
 }
 
+/**
+ * Converts a 256 bit word to a tuple of 4 64 bit words
+ * @param uint A 256 bit word
+ * @returns A tuple of 4 64 bit words
+ */
 export function uintToWords(
   uint: bigint
 ): [word1: bigint, word2: bigint, word3: bigint, word4: bigint] {
+  assert(0 <= uint && uint < 2 ** 256, 'number out of range');
   const word4 = uint & ((BigInt(1) << BigInt(64)) - BigInt(1));
   const word3 = (uint & ((BigInt(1) << BigInt(128)) - (BigInt(1) << BigInt(64)))) >> BigInt(64);
   const word2 = (uint & ((BigInt(1) << BigInt(192)) - (BigInt(1) << BigInt(128)))) >> BigInt(128);
@@ -65,50 +69,50 @@ export function uintToWords(
 /**
  * Computes the Pedersen hash of a execution payload for StarkNet
  * This can be used to produce the input for calling the commit method in the StarkNet Commit contract.
- * @param target the target address of the execution.
- * @param selector the selector for the method at address target one wants to execute.
- * @param calldata the payload for the method at address target one wants to execute.
- * @returns A Pedersen hash of the data as a Big Int.
+ * @param target the target address of the execution
+ * @param selector the selector for the method at address target one wants to execute
+ * @param calldata the payload for the method at address target one wants to execute
+ * @returns A Pedersen hash of the data as a Big Int
  */
-export function getCommit(target: bigint, function_selector: bigint, calldata: bigint[]): bigint {
+export function getCommit(target: bigint, selector: bigint, calldata: bigint[]): bigint {
   const targetBigNum = toBN('0x' + target.toString(16));
-  const function_selectorBigNum = toBN('0x' + function_selector.toString(16));
+  const selectorBigNum = toBN('0x' + selector.toString(16));
   const calldataBigNum = calldata.map((x) => toBN('0x' + x.toString(16)));
-  return BigInt(computeHashOnElements([targetBigNum, function_selectorBigNum, ...calldataBigNum]));
+  return BigInt(computeHashOnElements([targetBigNum, selectorBigNum, ...calldataBigNum]));
+}
+
+export interface Transaction {
+  to: string;
+  value: string | number | BigNumber;
+  data: string;
+  operation: number;
+  nonce: number;
 }
 
 /**
- * Utility function that returns an example executionHash and `txHashes`, given a verifying contract.
- * @param _verifyingContract The verifying l1 contract
- * @param tx1 Transaction object
- * @param tx2 Transaction object
- * @returns
+ * Computes an  execution hash and a set of transaction hashes for a proposal
+ * @param verifyingContract The verifying l1 contract
+ * @param txs Array of transactions
+ * @returns An array of transaction hashes and an overall keccak hash of those hashes
  */
 export function createExecutionHash(
-  _verifyingContract: string,
-  tx1: any,
-  tx2: any
+  txs: Transaction[],
+  verifyingContract: string,
+  chainId: number
 ): {
   executionHash: string;
   txHashes: string[];
 } {
   const domain = {
-    chainId: ethers.BigNumber.from(1), //TODO: should be network.config.chainId but it's not working
-    verifyingContract: _verifyingContract,
+    chainId: chainId,
+    verifyingContract: verifyingContract,
   };
-
-  // 2 transactions in proposal
-  const txHash1 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx1);
-  const txHash2 = _TypedDataEncoder.hash(domain, EIP712_TYPES, tx2);
-
+  const txHashes = txs.map((tx) => _TypedDataEncoder.hash(domain, EIP712_TYPES, tx));
   const abiCoder = new ethers.utils.AbiCoder();
-  const executionHash = ethers.utils.keccak256(
-    abiCoder.encode(['bytes32[]'], [[txHash1, txHash2]])
-  );
-
+  const executionHash = ethers.utils.keccak256(abiCoder.encode(['bytes32[]'], [txHashes]));
   return {
     executionHash: executionHash,
-    txHashes: [txHash1, txHash2],
+    txHashes: txHashes,
   };
 }
 
@@ -119,6 +123,7 @@ export function createExecutionHash(
  * flat_array[1:1+num_arrays] = offsets
  * flat_array[1+num_arrays:] = elements
  * @param array2D The 2d array to flatten
+ * @returns The flattened array
  */
 export function flatten2DArray(array2D: bigint[][]): bigint[] {
   const flatArray: bigint[] = [];
@@ -134,8 +139,19 @@ export function flatten2DArray(array2D: bigint[][]): bigint[] {
   return flatArray.concat(elements);
 }
 
+/**
+ * Generates a calldata array for creating a proposal through an authenticator
+ * @param proposerAddress The address of the proposal creator
+ * @param executionHash The hash of the proposal execution
+ * @param metadataUri The URI address of the proposal
+ * @param executorAddress The address of the execution strategy that is used in the proposal
+ * @param usedVotingStrategies An array of the voting strategy addresses that are used in the proposal
+ * @param usedVotingStrategyParams An array of arrays containing the parameters corresponding to the voting strategies used
+ * @param executionParams An array of the execution parameters used
+ * @returns Calldata array
+ */
 export function getProposeCalldata(
-  proposerEthAddress: string,
+  proposerAddress: string,
   executionHash: string,
   metadataUri: bigint[],
   executorAddress: bigint,
@@ -146,7 +162,7 @@ export function getProposeCalldata(
   const executionHashUint256 = SplitUint256.fromHex(executionHash);
   const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
   return [
-    BigInt(proposerEthAddress),
+    BigInt(proposerAddress),
     executionHashUint256.low,
     executionHashUint256.high,
     BigInt(metadataUri.length),
@@ -161,8 +177,17 @@ export function getProposeCalldata(
   ];
 }
 
+/**
+ * Generates a calldata array for casting a vote through an authenticator
+ * @param voterAddress The address of the proposal creator
+ * @param proposalID The ID of the proposal
+ * @param choice The choice of the voter (For, Against, Abstain)
+ * @param usedVotingStrategies An array of the voting strategy addresses that are used in the proposal
+ * @param usedVotingStrategyParams An array of arrays containing the parameters corresponding to the voting strategies used
+ * @returns Calldata array
+ */
 export function getVoteCalldata(
-  voterEthAddress: string,
+  voterAddress: string,
   proposalID: bigint,
   choice: Choice,
   usedVotingStrategies: bigint[],
@@ -170,7 +195,7 @@ export function getVoteCalldata(
 ): bigint[] {
   const usedVotingStrategyParamsFlat = flatten2DArray(usedVotingStrategyParams);
   return [
-    BigInt(voterEthAddress),
+    BigInt(voterAddress),
     proposalID,
     BigInt(choice),
     BigInt(usedVotingStrategies.length),

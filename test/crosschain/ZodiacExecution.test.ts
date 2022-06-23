@@ -8,7 +8,7 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import {
   createExecutionHash,
-  expectAddressEquality,
+  Transaction,
   getProposeCalldata,
   getVoteCalldata,
 } from '../shared/helpers';
@@ -17,7 +17,7 @@ import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 const VITALIK_ADDRESS = 'd8da6bf26964af9d7eed9e03e53415d37aa96045'; //removed hex prefix
 
 // Dummy tx
-const tx1 = {
+const tx1: Transaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x11',
@@ -26,7 +26,7 @@ const tx1 = {
 };
 
 // Dummy tx 2
-const tx2 = {
+const tx2: Transaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x22',
@@ -51,6 +51,7 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   // Proposal creation parameters
   let spaceAddress: bigint;
   let executionHash: string;
+  let txHashes: string[];
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -66,8 +67,6 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
-
-  let txHashes: any;
 
   before(async function () {
     this.timeout(800000);
@@ -87,7 +86,12 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     metadataUri = strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
-    ({ executionHash, txHashes } = createExecutionHash(zodiacModule.address, tx1, tx2));
+
+    ({ executionHash, txHashes } = createExecutionHash(
+      [tx1, tx2],
+      zodiacModule.address,
+      network.config.chainId!
+    ));
 
     proposerEthAddress = signer.address;
     spaceAddress = BigInt(space.address);
@@ -154,8 +158,8 @@ describe('Create proposal, cast vote, and send execution to l1', function () {
     expect(flushL2Response.consumed_messages.from_l1).to.be.empty;
     const flushL2Messages = flushL2Response.consumed_messages.from_l2;
     expect(flushL2Messages).to.have.a.lengthOf(1);
-    expectAddressEquality(flushL2Messages[0].from_address, zodiacRelayer.address);
-    expectAddressEquality(flushL2Messages[0].to_address, zodiacModule.address);
+    expect(BigInt(flushL2Messages[0].from_address)).to.equal(BigInt(zodiacRelayer.address));
+    expect(BigInt(flushL2Messages[0].to_address)).to.equal(BigInt(zodiacModule.address));
 
     // -- Check that l1 can receive the proposal correctly --
 
