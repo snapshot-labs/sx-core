@@ -8,7 +8,7 @@ import { strToShortStringArr } from '@snapshot-labs/sx';
 import { zodiacRelayerSetup } from '../shared/setup';
 import {
   createExecutionHash,
-  Transaction,
+  MetaTransaction,
   getProposeCalldata,
   getVoteCalldata,
 } from '../shared/helpers';
@@ -17,7 +17,7 @@ import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 const VITALIK_ADDRESS = 'd8da6bf26964af9d7eed9e03e53415d37aa96045'; //removed hex prefix
 
 // Dummy tx
-const tx1: Transaction = {
+const tx1: MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x11',
@@ -26,7 +26,7 @@ const tx1: Transaction = {
 };
 
 // Dummy tx 2
-const tx2: Transaction = {
+const tx2: MetaTransaction = {
   to: VITALIK_ADDRESS,
   value: 0,
   data: '0x22',

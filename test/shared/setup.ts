@@ -10,8 +10,7 @@ import {
   getProcessBlockInputs,
   ProofInputs,
   getProofInputs,
-} from './parseRPCData';
-import { encodeParams } from './singleSlotProofStrategyEncoding';
+} from './storageProofUtils';
 import { AddressZero } from '@ethersproject/constants';
 import { executeContractCallWithSigners } from './safeUtils';
 
@@ -319,8 +318,7 @@ export async function ethTxAuthSetup() {
 }
 
 export async function singleSlotProofSetup(block: any, proofs: any) {
-  // We pass the encode params function for the single slot proof strategy to generate the encoded data for the single slot proof strategy
-  const proofInputs: ProofInputs = getProofInputs(block.number, proofs, encodeParams);
+  const proofInputs: ProofInputs = getProofInputs(block.number, proofs);
 
   const controller = (await starknet.deployAccount('Argent')) as Account;
 

@@ -4,7 +4,7 @@ import Common, { Chain, Hardfork } from '@ethereumjs/common';
 import { bufferToHex } from 'ethereumjs-util';
 import blockFromRpc from '@ethereumjs/block/dist/from-rpc';
 import { IntsSequence } from './types';
-import { hexToBytes } from './helpers';
+import { hexToBytes, assert } from './helpers';
 
 export interface ProcessBlockInputs {
   blockNumber: number;
@@ -13,22 +13,24 @@ export interface ProcessBlockInputs {
 }
 
 /**
- * Produces the inputs for the process_block function in Fossil.
+ * Produces the input data for the process_block function in Fossil
  * @param block Block object from RPC call
- * @param _chain EVM chain identifier
- * @param _hardfork Hardfork identifier
+ * @param chain EVM chain identifier
+ * @param hardfork Hardfork identifier
  * @returns ProcessBlockInputs object
  */
 export function getProcessBlockInputs(
   block: any,
-  _chain: Chain = Chain.Mainnet,
-  _hardfork: Hardfork = Hardfork.London
+  chain: Chain = Chain.Mainnet,
+  hardfork: Hardfork = Hardfork.London
 ): ProcessBlockInputs {
   block.difficulty = '0x' + BigInt(block.difficulty).toString(16);
   block.totalDifficulty = '0x' + BigInt(block.totalDifficulty).toString(16);
-  const common = new Common({ chain: _chain, hardfork: _hardfork });
+  const common = new Common({ chain: chain, hardfork: hardfork });
   const header = blockFromRpc(block, [], { common }).header;
-  const headerRlp = bufferToHex(header.serialize());
+  const headerRlp = `0x${header.serialize().toString('hex')}`;
+  
+
   const headerInts = IntsSequence.fromBytes(hexToBytes(headerRlp));
   return {
     blockNumber: block.number as number,
@@ -49,18 +51,13 @@ export interface ProofInputs {
 }
 
 /**
- * Takes a proofs object obtained via a getStorageProof RPC call parses the data to extract the necessary data
- * and converts it to the correct form required by the SX/Fossil contracts.
- * @param blockNumber Number of the block that the proof targets
- * @param proofs Proofs object
- * @params encodeParams The encoding function that should be used on the storage proof data
+ * Produces the input data for the account and storage proof verification methods in Fossil
+ * @param blockNumber Block Number that the proof targets
+ * @param proofs Proofs object from RPC call
+ * @param encodeParams The encoding function that should be used on the storage proof data
  * @returns ProofInputs object
  */
-export function getProofInputs(
-  blockNumber: number,
-  proofs: any,
-  encodeParams: Function
-): ProofInputs {
+export function getProofInputs(blockNumber: number, proofs: any): ProofInputs {
   const accountProofArray = proofs.accountProof.map((node: string) =>
     IntsSequence.fromBytes(hexToBytes(node))
   );
@@ -108,4 +105,50 @@ export function getProofInputs(
     accountProof: accountProof as bigint[],
     storageProofs: storageProofs as bigint[][],
   };
+}
+
+/**
+ * Single slot proof voting strategy parameter array encoding (Inclusive -> Exclusive):
+ *
+ * Start Index      End Index                             Name                Description
+ * 0             -> 4                                   - slot              - Key of the storage slot containing the balance that will be verified
+ * 4             -> 5                                   - num_nodes         - number of nodes in the proof
+ * 5             -> 5+num_nodes                         - proof_sizes_bytes - Array of the sizes in bytes of each node proof
+ * 5+num_nodes   -> 5+2*num_nodes                       - proof_sizes_words - Array of the number of words in each node proof
+ * 5+2*num_nodes -> 5+2*num_nodes+sum(proof_size_words) - proofs_concat     - Array of the node proofs
+ *
+ * @param slot Key of the slot containing the storage value that will be verified
+ * @param proof_sizes_bytes Array of the sizes in bytes of each node proof
+ * @param proof_sizes_words Array of the number of words in each node proof
+ * @param proofs_concat Array of the node proofs
+ * @returns Encoded array
+ */
+export function encodeParams(
+  slot: bigint[],
+  proof_sizes_bytes: bigint[],
+  proof_sizes_words: bigint[],
+  proofs_concat: bigint[]
+): bigint[] {
+  assert(proof_sizes_bytes.length == proof_sizes_words.length, 'Invalid parameters');
+  const num_nodes = BigInt(proof_sizes_bytes.length);
+  return slot.concat([num_nodes], proof_sizes_bytes, proof_sizes_words, proofs_concat);
+}
+
+/**
+ * Decoding function for the storage proof data
+ * @param params Encoded parameter array
+ * @returns Decoded parameters
+ */
+export function decodeParams(params: bigint[]): [bigint[], bigint[], bigint[], bigint[]] {
+  assert(params.length >= 5, 'Invalid parameter array');
+  const slot: bigint[] = [params[0], params[1], params[2], params[3]];
+  const num_nodes = Number(params[4]);
+  const proof_sizes_bytes = params.slice(5, 5 + num_nodes);
+  const proof_sizes_words = params.slice(5 + num_nodes, 5 + 2 * num_nodes);
+  const proofs_concat = params.slice(5 + 2 * num_nodes);
+  const total = proof_sizes_words.reduce(function (x, y) {
+    return x + y;
+  }, BigInt(0));
+  assert(total == BigInt(proofs_concat.length), 'Invalid parameter array');
+  return [slot, proof_sizes_bytes, proof_sizes_words, proofs_concat];
 }

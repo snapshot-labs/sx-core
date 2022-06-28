@@ -37,12 +37,13 @@ export function stripAddress(address: string): string {
 }
 
 /**
- * Convert 4 64 bit words to a 256 bit word
+ * Converts 4 64 bit words to a 256 bit word
  * @param word1 A 64 bit word
  * @param word2 A 64 bit word
  * @param word3 A 64 bit word
  * @param word4 A 64 bit word
  * @returns A 256 bit word
+ */
 export function wordsToUint(word1: bigint, word2: bigint, word3: bigint, word4: bigint): bigint {
   const s3 = BigInt(2 ** 64);
   const s2 = BigInt(2 ** 128);
@@ -81,7 +82,7 @@ export function getCommit(target: bigint, selector: bigint, calldata: bigint[]):
   return BigInt(computeHashOnElements([targetBigNum, selectorBigNum, ...calldataBigNum]));
 }
 
-export interface Transaction {
+export interface MetaTransaction {
   to: string;
   value: string | number | BigNumber;
   data: string;
@@ -90,13 +91,13 @@ export interface Transaction {
 }
 
 /**
- * Computes an  execution hash and a set of transaction hashes for a proposal
+ * Computes an execution hash and a set of transaction hashes for a proposal for L1 execution via the Zodiac Module
  * @param verifyingContract The verifying l1 contract
  * @param txs Array of transactions
  * @returns An array of transaction hashes and an overall keccak hash of those hashes
  */
 export function createExecutionHash(
-  txs: Transaction[],
+  txs: MetaTransaction[],
   verifyingContract: string,
   chainId: number
 ): {

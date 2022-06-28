@@ -2,7 +2,7 @@ import fs from 'fs';
 import { expect } from 'chai';
 import { starknet, ethers } from 'hardhat';
 import { SplitUint256, Choice } from '../shared/types';
-import { ProofInputs } from '../shared/parseRPCData';
+import { ProofInputs } from '../shared/storageProofUtils';
 import { singleSlotProofSetup, Fossil } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
 import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
