@@ -24,7 +24,6 @@ describe('Space Testing', () => {
 
   // Proposal creation parameters
   let spaceAddress: bigint;
-  let executionHash: string;
   let metadataUri: bigint[];
   let proposerEthAddress: string;
   let usedVotingStrategies1: bigint[];
@@ -59,7 +58,6 @@ describe('Space Testing', () => {
     executionParams = [];
     proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
-      executionHash,
       metadataUri,
       executionStrategy,
       usedVotingStrategies1,
