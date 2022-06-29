@@ -29,7 +29,6 @@ export function getProcessBlockInputs(
   const common = new Common({ chain: chain, hardfork: hardfork });
   const header = blockFromRpc(block, [], { common }).header;
   const headerRlp = `0x${header.serialize().toString('hex')}`;
-  
 
   const headerInts = IntsSequence.fromBytes(hexToBytes(headerRlp));
   return {

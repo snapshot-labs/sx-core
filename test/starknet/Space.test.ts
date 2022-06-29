@@ -1,11 +1,18 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { StarknetContract, Account } from 'hardhat/types';
-import { strToShortStringArr } from '@snapshot-labs/sx';
-import { SplitUint256, Choice } from '../shared/types';
-import { getProposeCalldata, getVoteCalldata, bytesToHex } from '../shared/helpers';
+import { utils } from '@snapshot-labs/sx';
+// import { Choice } from '@snapshot-labs/sx/src/utils/choice';
+// import { SplitUint256 } from '@snapshot-labs/sx/src/utils/split-uint256';
 import { vanillaSetup } from '../shared/setup';
 import { PROPOSE_SELECTOR, VOTE_SELECTOR } from '../shared/constants';
+
+// const { SplitUint256 } = utils.splitUint256;
+// const { strToShortStringArr } = utils.strings;
+// const { getProposeCalldata, getVoteCalldata } = utils.encoding;
+// const { bytesToHex } = utils.bytes;
+
+
 
 describe('Space Testing', () => {
   // Contracts
@@ -29,7 +36,7 @@ describe('Space Testing', () => {
   // Additional parameters for voting
   let voterEthAddress: string;
   let proposalId: bigint;
-  let choice: Choice;
+  let vote: utils.choice.Choice;
   let usedVotingStrategies2: bigint[];
   let userVotingParamsAll2: bigint[][];
   let voteCalldata: bigint[];
@@ -39,9 +46,9 @@ describe('Space Testing', () => {
 
     ({ space, controller, vanillaAuthenticator, vanillaVotingStrategy, vanillaExecutionStrategy } =
       await vanillaSetup());
-
-    executionHash = bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
-    metadataUri = strToShortStringArr(
+    console.log(1);
+    executionHash = utils.bytes.bytesToHex(ethers.utils.randomBytes(32)); // Random 32 byte hash
+    metadataUri = utils.strings.strToShortStringArr(
       'Hello and welcome to Snapshot X. This is the future of governance.'
     );
     proposerEthAddress = ethers.Wallet.createRandom().address;
@@ -50,7 +57,7 @@ describe('Space Testing', () => {
     userVotingParamsAll1 = [[]];
     executionStrategy = BigInt(vanillaExecutionStrategy.address);
     executionParams = [];
-    proposeCalldata = getProposeCalldata(
+    proposeCalldata = utils.encoding.getProposeCalldata(
       proposerEthAddress,
       executionHash,
       metadataUri,
@@ -62,13 +69,13 @@ describe('Space Testing', () => {
 
     voterEthAddress = ethers.Wallet.createRandom().address;
     proposalId = BigInt(1);
-    choice = Choice.FOR;
+    vote = utils.choice.Choice.FOR;
     usedVotingStrategies2 = [BigInt(vanillaVotingStrategy.address)];
     userVotingParamsAll2 = [[]];
-    voteCalldata = getVoteCalldata(
+    voteCalldata = utils.encoding.getVoteCalldata(
       voterEthAddress,
       proposalId,
-      choice,
+      vote,
       usedVotingStrategies2,
       userVotingParamsAll2
     );
@@ -87,13 +94,12 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _executionHash = SplitUint256.fromObj(proposal_info.proposal.execution_hash).toUint();
-      expect(_executionHash).to.deep.equal(BigInt(executionHash));
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
+      console.log(_for);
       expect(_for).to.deep.equal(BigInt(0));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
     // -- Casts a vote FOR --
@@ -108,11 +114,11 @@ describe('Space Testing', () => {
         proposal_id: proposalId,
       });
 
-      const _for = SplitUint256.fromObj(proposal_info.power_for).toUint();
+      const _for = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_for).toUint();
       expect(_for).to.deep.equal(BigInt(1));
-      const against = SplitUint256.fromObj(proposal_info.power_against).toUint();
+      const against = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_against).toUint();
       expect(against).to.deep.equal(BigInt(0));
-      const abstain = SplitUint256.fromObj(proposal_info.power_abstain).toUint();
+      const abstain = utils.splitUint256.SplitUint256.fromObj(proposal_info.power_abstain).toUint();
       expect(abstain).to.deep.equal(BigInt(0));
     }
 
