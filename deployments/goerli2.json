@@ -1,15 +1,15 @@
 {
     "space": {
-        "address": "0x26ff4b2c18c627853e942bc99ad9d03c4872ddf3908dbafce22a3153976b81b",
+        "address": "0x3a4cb1c6e4439e2ce2c43b565e6347f2f334cd3a387e86fb14f7655c9b6704a",
         "authenticators": {
-            "StarkTx": "0x210dd91e9b29e9110e567405aa72bcda297069ededb2486195a28e6b382bdf2",
-            "Vanilla": "0x15b7fc281e0c36e239bc3204a694946fe05780ae0a51455f44e2fbf3063f93d"
+            "StarkTx": "0x4ea08b8da741e25a10a7600d35eb071d0ceadd51317aa5225354f60621494b1",
+            "Vanilla": "0x74edaa556d63d5f06e9b633b887a6b01159bb01c9b87cc3f27827af59239c28"
         },
         "controller": "0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb",
         "executionStrategies": {
-            "Starknet": "0x390dd0bea2515c1ccfde94abb6e9afc64205a51d4f5ef6a8a7be49c5dd09761",
-            "Vanilla": "0x771030377caa52998b34e19d7e79cd449c580005613a7865f15731455ca2eb5",
-            "zodiacRelayer": "0xdaa4a21f6462f3c72492fd3e1d354ecb188e343d48a15fc4ee1338fe76ef68"
+            "Starknet": "0x5eae4409396ef51a83d67c39ad24d1d339f07c8a586fe1213560552c0b0ebcd",
+            "Vanilla": "0x622b6f2e8fa0de8aabb3bff5f2c5d46d4326d51589d5c068931bd5967747eed",
+            "zodiacRelayer": "0x4ae0301f303948ab091ed995d3d9908b7ca0cbbbad8d70f91810f72d38bcbc6"
         },
         "maxVotingDuration": "0x7d0",
         "minVotingDuration": "0x0",
@@ -18,14 +18,14 @@
         "quorum": "0x1",
         "votingStrategies": {
             "SingleSlotProof": {
-                "address": "0x5dc94fab53d4aec7f645e36eccf6105fe2ebf22b6d6d6b393c5f05d4a3b516b",
+                "address": "0x1c3d80d1927e9fd5e050de1501693d409b58a3d79f002605737998dc8bd90c9",
                 "parameters": [
                     "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
                     "0x0"
                 ]
             },
             "Vanilla": {
-                "address": "0x20cf6e3e13f7e0df96c3bb257dec8a03d6ddcc3f52eda08a9ac5919ffca2ba9",
+                "address": "0x4fa559ef60470db4a3717eb2416842fae4e69a7f71f2d6daf9a00e517e3b572",
                 "parameters": [
                 ]
             }

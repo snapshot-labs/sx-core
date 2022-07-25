@@ -15,12 +15,12 @@ async function main() {
     process.env.ARGENT_ACCOUNT_ADDRESS!,
     ec.getKeyPair(process.env.ARGENT_PRIVATE_KEY!)
   );
-  const spaceAddress = '0x4188ccd03d5366349ed9c4a22a435f621120529ddf5db4fcfc11f5fdda92f2';
+  const spaceAddress = '0x3a4cb1c6e4439e2ce2c43b565e6347f2f334cd3a387e86fb14f7655c9b6704a';
   const voterEthAddress = ethers.Wallet.createRandom().address;
   const proposalId = BigInt(1);
   const choice = utils.choice.Choice.AGAINST;
   const usedVotingStrategies = [
-    BigInt('0x11621cda94a730cbf7cf9a6a99f3f27f7e4451cc843a47bbed4e7012596f105'),
+    BigInt('0x4fa559ef60470db4a3717eb2416842fae4e69a7f71f2d6daf9a00e517e3b572'),
   ];
   const userVotingParamsAll = [[]];
   const voteCalldata = utils.encoding.getVoteCalldata(
@@ -37,11 +37,10 @@ async function main() {
     voteCalldataHex.length,
     ...voteCalldataHex,
   ];
-  console.log(calldata);
 
   const { transaction_hash: txHash } = await account.execute(
     {
-      contractAddress: '0x2713acc3a940dcfa33a9675ad9ba67b4cdf09cb33d788a0a366e13ffd3ab0eb',
+      contractAddress: '0x74edaa556d63d5f06e9b633b887a6b01159bb01c9b87cc3f27827af59239c28',
       entrypoint: 'authenticate',
       calldata: calldata,
     },

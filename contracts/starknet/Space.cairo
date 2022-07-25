@@ -842,9 +842,11 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         end
     end
 
-    # Hash the execution params
+    # Hash the execution params 
     # Storing arrays inside a struct is impossible so instead we just store a hash and then reconstruct the array in finalize_proposal
-    let (execution_hash) = hash_array(execution_params_len, execution_params)
+   
+   # BROKEN: "Out of bounds write to a read-only segment" error. hardcoded value for now
+   # let (execution_hash) = hash_array(execution_params_len, execution_params)
 
     let (_quorum) = quorum_store.read()
 
@@ -856,7 +858,7 @@ func propose{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr :
         min_end_timestamp,
         max_end_timestamp,
         executor,
-        execution_hash,
+        1234,
     )
 
     let (proposal_id) = next_proposal_nonce_store.read()

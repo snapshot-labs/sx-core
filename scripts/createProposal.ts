@@ -10,10 +10,13 @@ import { toBN } from 'starknet/dist/utils/number';
 async function main() {
   global.fetch = fetch;
 
+  const starkKeyPair = ec.getKeyPair(
+    '637357425248906491734798339821267946913367255989714880095234737256366305691'
+  );
   const account = new Account(
     defaultProvider,
-    process.env.ARGENT_ACCOUNT_ADDRESS!,
-    ec.getKeyPair(process.env.ARGENT_PRIVATE_KEY!)
+    '0x0764c647e4c5f6e81c5baa1769b4554e44851a7b6319791fc6db9e25a32148bb',
+    starkKeyPair
   );
 
   // Generating propose calldata:
@@ -21,13 +24,13 @@ async function main() {
     'Hello and welcome to Snapshot X. This is the future of governance.'
   );
   const proposerEthAddress = ethers.Wallet.createRandom().address;
-  const spaceAddress = '0x2e5804152c5cfb8f2c5de9109001fea295aee6e4c2ab18d16c3da808a39e29c';
+  const spaceAddress = '0x3a4cb1c6e4439e2ce2c43b565e6347f2f334cd3a387e86fb14f7655c9b6704a';
   const usedVotingStrategies = [
-    BigInt('0x434ae7044947e43c198352ef092a2b2318b8841282dbdd59d4ca978f90335a3'),
+    BigInt('0x4fa559ef60470db4a3717eb2416842fae4e69a7f71f2d6daf9a00e517e3b572'),
   ];
   const userVotingParamsAll = [[]];
   const executionStrategy = BigInt(
-    '0x66240df298b5f2c53e2555e5299b4a78c762a78563d9feca778fd79bcbe288c'
+    '0x622b6f2e8fa0de8aabb3bff5f2c5d46d4326d51589d5c068931bd5967747eed'
   );
   const executionParams: bigint[] = [];
   const proposeCalldata = utils.encoding.getProposeCalldata(
@@ -47,27 +50,27 @@ async function main() {
   ];
 
   // Executing propose tx via the vanilla authenticator
-  // const { transaction_hash: txHash } = await account.execute(
-  //   {
-  //     contractAddress: '0x5a57beb8cc06d4182b9764723aa572ec9fe6b3d03ec15fc368a0119c0e5266a',
-  //     entrypoint: 'authenticate',
-  //     calldata: calldata,
-  //   },
-  //   undefined,
-  //   { maxFee: '857400005301800' }
-  // );
-  // console.log(txHash);
-
   const { transaction_hash: txHash } = await account.execute(
     {
-      contractAddress: '0x26ff4b2c18c627853e942bc99ad9d03c4872ddf3908dbafce22a3153976b81b',
-      entrypoint: 'update_quorum',
-      calldata: ['0x2'],
+      contractAddress: '0x74edaa556d63d5f06e9b633b887a6b01159bb01c9b87cc3f27827af59239c28',
+      entrypoint: 'authenticate',
+      calldata: calldata,
     },
     undefined,
     { maxFee: '857400005301800' }
   );
   console.log(txHash);
+
+  // const { transaction_hash: txHash } = await account.execute(
+  //   {
+  //     contractAddress: '0x26ff4b2c18c627853e942bc99ad9d03c4872ddf3908dbafce22a3153976b81b',
+  //     entrypoint: 'update_quorum',
+  //     calldata: ['0x2'],
+  //   },
+  //   undefined,
+  //   { maxFee: '857400005301800' }
+  // );
+  // console.log(txHash);
 }
 
 main()
